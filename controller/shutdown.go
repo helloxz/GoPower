@@ -2,16 +2,32 @@ package controller
 
 import (
 	"os/exec"
+	"runtime"
 
 	"github.com/gin-gonic/gin"
 )
 
 func Shutdown(c *gin.Context) {
-	out, err := exec.Command("shutdown", "/s").Output()
+	//根据不同的操作系统执行不同
+	sysType := runtime.GOOS
+	var out []byte
+	var err error
+	if sysType == "windows" {
+		out, err = exec.Command("shutdown", "/s", "/t", "10").Output()
+	} else if sysType == "linux" {
+		out, err = exec.Command("shutdown", "-h", "now").Output()
+	} else {
+		c.JSON(-1000, gin.H{
+			"code": -1000,
+			"msg":  "当前系统尚不支持！",
+			"data": "",
+		})
+	}
+
 	if err != nil {
 		c.JSON(-1000, gin.H{
 			"code": -1000,
-			"msg":  "关机失败！" + string(out),
+			"msg":  "关机命令执行失败！",
 			"data": "",
 		})
 	} else {

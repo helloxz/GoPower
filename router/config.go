@@ -74,6 +74,17 @@ func Start() {
 	r.POST("/api/health", auth(), controller.Health)
 	r.POST("/api/startup", auth(), controller.StartUP)
 
+	//运行webui
+	webui_status := cfg.Section("servers").Key("webui").String()
+	if webui_status == "on" {
+		r.StaticFS("/", http.Dir("./front/dist"))
+	} else if webui_status != "on" {
+		r.LoadHTMLFiles("./webui/403.html")
+		r.GET("/", func(c *gin.Context) {
+			c.HTML(http.StatusOK, "403.html", gin.H{})
+		})
+	}
+
 	//运行gin，并从配置文件指定端口
 	r.Run(port)
 }

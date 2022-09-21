@@ -1,6 +1,7 @@
 [servers]
 port = :886
 RunMode = debug
+webui = off
 
 [infos]
 key = xxxxxxxx

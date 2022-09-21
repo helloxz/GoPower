@@ -3,6 +3,7 @@ package controller
 import (
 	"os/exec"
 	"regexp"
+	"runtime"
 
 	"github.com/gin-gonic/gin"
 )
@@ -25,6 +26,7 @@ func StartUP(c *gin.Context) {
 			"data": "",
 		})
 		c.Abort()
+		return
 	}
 	//如果IP不为空，还要验证IP是否正确
 	if ip != "" {
@@ -38,16 +40,31 @@ func StartUP(c *gin.Context) {
 				"data": "",
 			})
 			c.Abort()
+			return
 		}
 	}
 
-	//执行系统命令，仅支持Linux X64
-	out, err := exec.Command("./bin/wol", mac, ip).Output()
+	//发起wol唤醒指令
+	sysType := runtime.GOOS
+	var bin string
+	if sysType == "linux" {
+		bin = "./bin/wol"
+	} else if sysType == "windows" {
+		bin = "./bin/wol.exe"
+	} else {
+		c.JSON(-1000, gin.H{
+			"code": -1000,
+			"msg":  "当前系统不支持wol命令！",
+			"data": "",
+		})
+		return
+	}
+	_, err := exec.Command(bin, mac, ip).Output()
 
 	if err != nil {
 		c.JSON(-1000, gin.H{
 			"code": -1000,
-			"msg":  string(out),
+			"msg":  "命令执行失败！",
 			"data": "",
 		})
 	} else {
