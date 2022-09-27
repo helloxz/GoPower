@@ -37,6 +37,9 @@ func main() {
 			//当前时间传递
 			controller.GetStartTime(now)
 			router.Start()
+		} else if args[1] == "init" {
+			cli.Init()
+			os.Exit(0)
 		} else {
 			fmt.Printf("Parameter is incorrect!\n")
 		}

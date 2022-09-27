@@ -57,6 +57,7 @@ func StartUP(c *gin.Context) {
 			"msg":  "当前系统不支持wol命令！",
 			"data": "",
 		})
+		c.Abort()
 		return
 	}
 	_, err := exec.Command(bin, mac, ip).Output()

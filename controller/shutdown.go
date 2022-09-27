@@ -22,6 +22,9 @@ func Shutdown(c *gin.Context) {
 			"msg":  "当前系统尚不支持！",
 			"data": "",
 		})
+		//终止执行
+		c.Abort()
+		return
 	}
 
 	if err != nil {
