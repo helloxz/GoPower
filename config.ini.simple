@@ -1,6 +1,6 @@
 [servers]
 port = :886
-RunMode = debug
+RunMode = release
 webui = off
 
 [infos]
