@@ -13,9 +13,9 @@ func Shutdown(c *gin.Context) {
 	var out []byte
 	var err error
 	if sysType == "windows" {
-		out, err = exec.Command("shutdown", "/s", "/t", "10").Output()
+		out, err = exec.Command("shutdown", "/s", "/t", "60").Output()
 	} else if sysType == "linux" {
-		out, err = exec.Command("shutdown", "-h", "now").Output()
+		out, err = exec.Command("shutdown", "-h", "1").Output()
 	} else {
 		c.JSON(-1000, gin.H{
 			"code": -1000,

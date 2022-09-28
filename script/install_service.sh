@@ -16,7 +16,8 @@ Description=GoPower
 After=network.target
 
 [Service]
-ExecStart=${gopower_bin} start
+WorkingDirectory=${gopower_path}
+ExecStart=${gopower_bin} -c ${gopower_path}/config.ini
 
 [Install]
 WantedBy=multi-user.target

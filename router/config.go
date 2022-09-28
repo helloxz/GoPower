@@ -1,14 +1,34 @@
 package router
 
 import (
-	"fmt"
 	"http_shutdown/controller"
+	"io"
 	"net/http"
 	"os"
 
 	"github.com/gin-gonic/gin"
 	"gopkg.in/ini.v1"
 )
+
+/*获取配置*/
+var conf *ini.File
+
+/*初始化conf配置*/
+func Init_conf([]string) {
+	//获取命令行参数
+	args := os.Args
+	//获取切片长度
+	args_cap := len(args)
+	var conf_path string
+	if args_cap == 3 && args[1] == "-c" {
+		conf_path = args[2]
+	} else {
+		conf_path = "config.ini"
+	}
+
+	//读取配置
+	conf, _ = ini.Load(conf_path)
+}
 
 /*认证中间件*/
 func auth() gin.HandlerFunc {
@@ -17,8 +37,7 @@ func auth() gin.HandlerFunc {
 		key := c.PostForm("key")
 		//获取配置中的key
 		//读取配置文件
-		cfg, _ := ini.Load("config.ini")
-		get_key := cfg.Section("infos").Key("key").String()
+		get_key := conf.Section("infos").Key("key").String()
 
 		if key != get_key {
 			c.JSON(200, gin.H{
@@ -54,16 +73,16 @@ func cors() gin.HandlerFunc {
 // 所有路由，全部配置到这里
 func Start() {
 	//读取配置文件
-	cfg, err := ini.Load("config.ini")
-	if err != nil {
-		fmt.Printf("Fail to read file: %v", err)
-		os.Exit(1)
-	}
-
-	port := cfg.Section("servers").Key("port").String()
+	port := conf.Section("servers").Key("port").String()
 	//gin运行模式
-	RunMode := cfg.Section("servers").Key("RunMode").String()
+	RunMode := conf.Section("servers").Key("RunMode").String()
 	gin.SetMode(RunMode)
+
+	//日志记录到文件
+	f, _ := os.Create("gopower.log")
+	gin.DefaultWriter = io.MultiWriter(f)
+	//日志同时输出到控制台
+	gin.DefaultWriter = io.MultiWriter(f, os.Stdout)
 
 	r := gin.Default()
 
@@ -75,7 +94,7 @@ func Start() {
 	r.POST("/api/startup", auth(), controller.StartUP)
 
 	//运行webui
-	webui_status := cfg.Section("servers").Key("webui").String()
+	webui_status := conf.Section("servers").Key("webui").String()
 	if webui_status == "on" {
 		r.StaticFS("/", http.Dir("./front/dist"))
 	} else if webui_status != "on" {

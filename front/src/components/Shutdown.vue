@@ -59,7 +59,7 @@
 				let data = response.data
 				if( data.code == 200 ) {
 					ElMessage({
-						message: '关机成功！',
+						message: '执行成功，将在1分钟后关机！',
 						type: 'success',
 					})
 				}
