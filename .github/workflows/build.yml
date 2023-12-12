@@ -1,0 +1,52 @@
+name: Build
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.x
+
+      - name: Install backend dependencies
+        run: go mod tidy
+
+      - name: Build backend
+        run: go build -ldflags -w main.go
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: 14
+
+      - name: Install frontend dependencies
+        run: npm install
+        working-directory: front
+
+      - name: Build frontend
+        run: npm run build
+        working-directory: front
+
+      - name: Archive artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: Build artifacts
+          path: |
+            main       # Backend binary
+            front/dist # Frontend build output
+
+      - name: Clean up
+        run: |
+          rm main
+          rm -rf front/dist
