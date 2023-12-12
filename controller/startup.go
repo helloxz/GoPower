@@ -11,8 +11,8 @@ import (
 func StartUP(c *gin.Context) {
 	//获取MAC地址
 	mac := string(c.PostForm("mac"))
-	//获取IP
-	ip := string(c.PostForm("ip"))
+	//获取广播地址
+	broadcast := string(c.PostForm("broadcast"))
 
 	//判断MAC地址是否正确
 	var validMAC = regexp.MustCompile(`^[0-9a-zA-Z]{2}:[0-9a-zA-Z]{2}:[0-9a-zA-Z]{2}:[0-9a-zA-Z]{2}:[0-9a-zA-Z]{2}:[0-9a-zA-Z]{2}$`)
@@ -28,15 +28,15 @@ func StartUP(c *gin.Context) {
 		c.Abort()
 		return
 	}
-	//如果IP不为空，还要验证IP是否正确
-	if ip != "" {
-		var validIP = regexp.MustCompile(`^(25[0-5]|2[0-4]\d|[0-1]?\d?\d)(\.(25[0-5]|2[0-4]\d|[0-1]?\d?\d)){3}$`)
-		v_re := validIP.MatchString(ip)
+	//如果广播地址不为空，还要验证广播地址是否正确
+	if broadcast != "" {
+		var validIP = regexp.MustCompile(`^(\d{1,2}|1\d{2}|2[0-4]\d|25[0-5])(\.(\d{1,2}|1\d{2}|2[0-4]\d|25[0-5])){3}$`)
+		v_re := validIP.MatchString(broadcast)
 
 		if !v_re {
 			c.JSON(-1000, gin.H{
 				"code": -1000,
-				"msg":  "IP地址格式不正确！",
+				"msg":  "广播地址格式不正确！",
 				"data": "",
 			})
 			c.Abort()
@@ -60,7 +60,7 @@ func StartUP(c *gin.Context) {
 		c.Abort()
 		return
 	}
-	_, err := exec.Command(bin, mac, ip).Output()
+	_, err := exec.Command(bin, mac, broadcast).Output()
 
 	if err != nil {
 		c.JSON(-1000, gin.H{

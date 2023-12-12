@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - main
+    paths:
+      - ".github/workflows/build.yml"
   workflow_dispatch:
 
 jobs:
@@ -12,12 +14,12 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Set up Go
-        uses: actions/setup-go@v2
+        uses: actions/setup-go@v4
         with:
-          go-version: 1.x
+          go-version: '1.20'
 
       - name: Install backend dependencies
         run: go mod tidy
@@ -26,25 +28,34 @@ jobs:
         run: go build -ldflags -w main.go
 
       - name: Set up Node.js
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
-          node-version: 14
+          node-version: 16.x
 
       - name: Install frontend dependencies
-        run: npm install
+        run: |
+          rm -rf dist
+          npm install
         working-directory: front
 
       - name: Build frontend
         run: npm run build
         working-directory: front
+      
+      - name: Copy artifacts
+        run: |
+          mkdir -p GoPower/front
+          cp -a bin script webui config.ini.simple LICENSE README.md GoPower
+          cp -a front/dist GoPower/front/
+          cp main GoPower/GoPower
+          zip -r GoPower.zip GoPower/
 
       - name: Archive artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
-          name: Build artifacts
+          name: GoPower
           path: |
-            main       # Backend binary
-            front/dist # Frontend build output
+            GoPower
 
       - name: Clean up
         run: |
