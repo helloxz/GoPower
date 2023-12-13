@@ -92,6 +92,8 @@ func Start() {
 	r.POST("/api/shutdown", auth(), controller.Shutdown)
 	r.POST("/api/health", auth(), controller.Health)
 	r.POST("/api/startup", auth(), controller.StartUP)
+	r.POST("/load_settings",controller.LoadSettings)
+	r.POST("/save_settings",controller.SaveSettings)
 
 	//运行webui
 	webui_status := conf.Section("servers").Key("webui").String()

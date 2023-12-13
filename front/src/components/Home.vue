@@ -10,7 +10,7 @@
 				<el-table-column fixed prop="mac" label="Mac地址" width="140" />
 				<el-table-column fixed prop="note" label="备注" width="120" />
 				<el-table-column prop="ip" label="IP" width="130" />
-				<el-table-column prop="mask" label="子网掩码" width="130" />
+				<!-- <el-table-column prop="mask" label="子网掩码" width="130" /> -->
 				<el-table-column prop="runtime" label="运行时间" :formatter="formatter" width="100" />
 				<el-table-column prop="wol_api" label="唤醒API" width="220" />
 				<!-- <el-table-column prop="wol_api_key" label="唤醒API KEY" width="120" /> -->
@@ -164,6 +164,50 @@ function cidrToMask(cidr) {
 	}
 	return mask;
 }
+// 从后端获取字典列表
+function loadSettings() {
+	axios.post('/load_settings', null)
+		.then(response => {
+			// 从响应中获取字典列表数据
+			let data = response.data;
+			if (data.code == 200) {
+				if (data.data.length > 0){
+					s_datas.value = data.data;
+				}
+			}
+			else {
+				console.error(data.msg);
+				ElMessage.error('加载配置失败:' + data.msg);
+			}
+		})
+		.catch(error => {
+			console.error('无法加载设置：', error);
+			ElMessage.error('加载配置失败:' + error);
+		});
+}
+// 向后端发送字典列表
+function saveSettings() {
+	axios.post('/save_settings', s_datas.value)
+		.then(response => {
+			// 从响应中获取保存后的字典列表数据
+			let data = response.data;
+			if (data.code == 200) {
+				console.log('保存成功');
+				ElMessage({
+					message: '保存成功！',
+					type: 'success',
+				})
+			}
+			else {
+				console.error(data.msg);
+				ElMessage.error('加载配置失败:' + data.msg);
+			}
+		})
+		.catch(error => {
+			console.error('无法加载设置：', error);
+			ElMessage.error('加载配置失败:' + error);
+		});
+}
 //验证参数是否合法
 function v_params() {
 	//如果MAC地址为空
@@ -307,7 +351,8 @@ function save_setting() {
 		"broadcast": s_data.value.broadcast
 	}
 	//重新保存数据
-	localStorage.setItem("s_datas", JSON.stringify(s_datas.value));
+	//localStorage.setItem("s_datas", JSON.stringify(s_datas.value));
+	saveSettings()
 	ElMessage({
 		message: '设置已保存！',
 		type: 'success',
@@ -316,7 +361,7 @@ function save_setting() {
 //打开空设置选项
 function open_setting() {
 	//清空数据
-	clear_s_data()
+	//clear_s_data()
 	//显示添加按钮
 	btn_status.value.add = true
 	btn_status.value.save = false
@@ -325,14 +370,15 @@ function open_setting() {
 }
 //添加一个设置
 function add_setting() {
-	//先获取浏览器缓存数据
+	/* //先获取浏览器缓存数据
 	let value = localStorage.getItem("s_datas");
 	//转为对象
 	value = JSON.parse(value)
 	//如果数据不为空，则赋值给s_datas
 	if (value !== null) {
 		s_datas.value = value;
-	}
+	} */
+	loadSettings();
 	//验证参数
 	if (!v_params()) {
 		return false;
@@ -340,13 +386,12 @@ function add_setting() {
 	//追加数据
 	s_datas.value.push(s_data.value);
 	//重新保存到浏览器存储
-	localStorage.setItem("s_datas", JSON.stringify(s_datas.value));
+	//localStorage.setItem("s_datas", JSON.stringify(s_datas.value));
+	saveSettings();
 	//清空数据
-	clear_s_data()
-	ElMessage({
-		message: '添加成功！',
-		type: 'success',
-	})
+	clear_s_data();
+	//关闭抽屉
+	drawer.value = false;
 }
 //计算运行时间
 const c_runtime = computed((shutdown_api, shutdown_api_key) => {
@@ -372,7 +417,7 @@ const formatter = (row, column) => {
 			}
 		})
 		.catch(function (error) {
-			run_time.value[key] = "获取失败"
+			run_time.value[key] = "离线"
 		});
 	return run_time.value[key]
 }
@@ -385,7 +430,7 @@ onMounted(() => {
 		drawer_size.value = "80%";
 	}
 
-	let value = localStorage.getItem("s_datas");
+	/* let value = localStorage.getItem("s_datas");
 
 	//转为对象
 	value = JSON.parse(value)
@@ -394,14 +439,16 @@ onMounted(() => {
 	if (value !== null) {
 		s_datas.value = value;
 		//console.log(s_datas.value);
-	}
+	} */
+	loadSettings();
 })
 
 //删除数据
 function del_sdata(row, index) {
 	s_datas.value.splice(index, 1)
 	//重新保存到浏览器
-	localStorage.setItem("s_datas", JSON.stringify(s_datas.value));
+	//localStorage.setItem("s_datas", JSON.stringify(s_datas.value));
+	saveSettings()
 }
 //编辑数据
 function edit_sdata(index) {
